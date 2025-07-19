@@ -1,0 +1,13 @@
+_voir(){
+    if (( COMP_CWORD == 1 )) ; then
+        COMPREPLY=(-iment)
+    fi
+}
+complete -o default -o filenames -F _voir voir
+
+_xrec(){
+    if ((COMP_CWORD == 1 )) ; then
+        COMPREPLY=(-imflds)
+    fi
+}
+complete -o default -o filenames -F _xrec xrec

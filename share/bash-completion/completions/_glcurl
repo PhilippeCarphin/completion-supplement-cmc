@@ -1,0 +1,65 @@
+#!/bin/bash
+
+_glcurl_users_and_groups=(
+    RPN-SI
+    phc001
+)
+
+_glcurl_log(){
+    echo "$*" >> ~/.log.txt
+}
+
+_glcurl(){
+    local cur prev words cword
+    _init_completion || return 1
+
+    _glcurl_log "cur=${cur}, prev=${prev}, words=(${words[*]}), cword=${cword}"
+
+    if (( cword == 1 )) ; then
+        _glcurl_complete_request
+    fi
+}
+
+_glcurl_complete_request(){
+    compopt -o filenames
+    compopt -o nospace
+    local request_base=${cur%/*}/
+    local request_tail=${cur##*/}
+    local candidates
+    local end=false
+    local suffix=
+    _glcurl_log "request_base=${request_base}"
+    case "${request_base}" in
+        /)                      candidates="projects users groups" ;;
+        /projects/*/pipelines/) candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of pipelines
+        /projects/*/jobs/)      candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of jobs
+        /projects/*/)           candidates="pipelines jobs access_requests" ;;
+        /projects/)
+            if [[ "${request_tail}" == *%2F* ]] ; then
+                _glcurl_log "Yes %2F"
+                candidates="$(<~/A_CLASSER/gitlab_projects.txt)"
+            else
+                _glcurl_log "No  %2F"
+                candidates="${_glcurl_users_and_groups[*]}"
+                # candidates="$(<~/A_CLASSER/gitlab_groups.txt) $(<~/A_CLASSER/gitlab_users.txt)" ; suffix="%2F"
+            fi
+            ;;
+        /users/)                candidates="$(<~/A_CLASSER/gitlab_users.txt)" ;;
+        /users/*/projects/)     candidates=""; end=true;;
+        /users/*/|/groups/*/)   candidates="projects" ; end=true ;;
+        /groups/)               candidates="$(<~/A_CLASSER/gitlab_groups.txt)" ;;
+        *) _glcurl_log "Unknown request base '${request_base}'" ;;
+    esac
+
+    # Request -> ${request_base}${request_tail} (request_base constains the dividing '/')
+    # We for the list of candidates for completing the request tail
+    # Then we form the list of candidates for completing the request by
+    # prepending ${request_base} to each request_tail candidate.
+    COMPREPLY=($(compgen -W "${candidates}" -P "${request_base}" -S "${suffix}" -- "${request_tail}"))
+    if ((${#COMPREPLY[@]} == 1 )) && ${end} ; then
+        compopt +o filenames
+        COMPREPLY=("${COMPREPLY[0]} ")
+    fi
+}
+
+complete -F _glcurl glcurl
