@@ -1,5 +1,14 @@
 # Completions for CMC commands that don't have them
 
+- `ord_soumet`: Everybody knows what that is.
+- `glcurl`: A thing that I made for making requests to gitlab.  You should
+  probably just use `glab`.
+- `voir`: It just adds the `-iment` when you press TAB
+- `hcron`: Completes subcommands and arguments to subcommands.  Mainly useful
+  to give possible subcommands but also to get the right syntax for `EVENT`
+  in `hcron activate EVENT`.
+- `clone_suite`:  A tool from CMDI.
+
 ## Install
 
 ### Fool proof way
