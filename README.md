@@ -40,6 +40,10 @@ or
 
 - Run `PREFIX=<X> make install` with `<X>/share` being part of `XDG_DATA_DIRS`.
 
+or
+
+- In your profile, add `/home/phc001/publicmodules` to your `MODULEPATH`
+  variable and do `module load completion-supplement-cmc`.
 
 See
 [bash-completion-notes](https://github.com/PhilippeCarphin/manpage-supplement/blob/main/share/man/man7/bash-completion-notes.org)
