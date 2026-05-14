@@ -1,0 +1,11 @@
+#!/usr/bin/env bash # hint
+
+_clone_suite(){
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    local prev=${COMP_WORDS[COMP_CWORD-1]}
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY+=( $(compgen -W "-c -b --new-branch --no-central -n --no-make_links -ns --no-startdate_init --depth --move-git-database -h --help --include-uncommitted-changes --commit-uncommitted-changes" -- "${cur}") )
+    fi
+}
+
+complete -F _clone_suite clone_suite
