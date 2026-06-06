@@ -2,7 +2,12 @@
 set VERSION "1.0.0"
 proc ModulesHelp {} {
     puts stderr "completion-supplement-cmc is a set of bash completion files"
+    puts stderr "for CMC tools that don't provide them."
+    puts stderr ""
+    puts stderr "Provided completions:"
+    @COMPLETIONS@
 }
-module-whatis "completion-supplement-cmc is a set of bash completion files"
+
+module-whatis "A set of bash completion files for CMC tools that don't provide them"
 
 prepend-path XDG_DATA_DIRS @PREFIX@/share

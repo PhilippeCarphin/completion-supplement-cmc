@@ -1,28 +1,26 @@
+completions=$(wildcard share/bash-completion/completions/_*)
 modulefile=share/modulefiles/completion-supplement-cmc
-PREFIX ?= localinstall
+PREFIX ?= $(HOME)/.local
 
 all: module
 
 install:module
-	install -D share/bash-completion/completions/_glcurl $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_glcurl
-	install -D share/bash-completion/completions/_voir $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_voir
-	install -D share/bash-completion/completions/_ord_soumet $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_ord_soumet
-	install -D share/bash-completion/completions/_hcron $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_hcron
-	install -D share/bash-completion/completions/_clone_suite $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_clone_suite
-	install -D share/modulefiles/completion-supplement-cmc $(DESTDIR)$(PREFIX)/share/modulefiles/completion-supplement-cmc
+	for comp in $(completions) ; do install -vD -m 644 $${comp} $(DESTDIR)$(PREFIX)/$${comp} ; done
+	install -D -m 644 $(modulefile) $(DESTDIR)$(PREFIX)/share/modulefiles/completion-supplement-cmc
 
+.PHONY: $(modulefile)
 module:$(modulefile)
 $(modulefile):modulefile.in
-	sed 's|@PREFIX@|$(realpath $(PREFIX))|g' $^ >$@
+	sed 's|@PREFIX@|$(realpath $(PREFIX))|g' $< >$@
+	sed -i 's|@COMPLETIONS@|$(shell echo "$(completions)" | sed 's+[^ ]*/_\([^ ]*\)\( \|$$\)+puts stderr \"- \1\" ; +g')|g' $@
 
 install-dev:module
-	mkdir -p $(DESTDIR)$(PREFIX)/share/bash-completion/completions
-	ln -snf  $(PWD)/share/bash-completion/completions/_glcurl $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_glcurl
-	ln -snf  $(PWD)/share/bash-completion/completions/_voir $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_voir
-	ln -snf  $(PWD)/share/bash-completion/completions/_ord_soumet $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_ord_soumet
-	ln -snf  $(PWD)/share/bash-completion/completions/_hcron $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_hcron
-	ln -snf  $(PWD)/share/bash-completion/completions/_clone_suite $(DESTDIR)$(PREFIX)/share/bash-completion/completions/_clone_suite
-	ln -snf  $(PWD)/share/modulefiles/completion-supplement-cmc $(DESTDIR)$(PREFIX)/share/modulefiles/completion-supplement-cmc
+	mkdir -p $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/modulefiles
+	for comp in $(completions) ; do ln -snfv $(PWD)/$${comp} $(DESTDIR)$(PREFIX)/$${comp} ; done
+	ln -snf  $(PWD)/$(modulefile) $(DESTDIR)$(PREFIX)/share/modulefiles/completion-supplement-cmc
+
+link-dot-local:
+	PREFIX=$(HOME)/.local $(MAKE) install-dev
 
 clean:
 	rm -f share/modulefiles/*
