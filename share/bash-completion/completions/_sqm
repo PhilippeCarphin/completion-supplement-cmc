@@ -1,0 +1,69 @@
+# sqm list
+#     [--format-f csv|json]
+#     [<generic-options>]
+# sqm modify
+#     [--limits LOW HIGH]
+#     [<generic-options>]
+_sqm(){
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    if ((COMP_CWORD == 1)) ; then
+        COMPREPLY=($(compgen -W "list modify" -- "${cur}"))
+        return
+    else
+        local subcommand=${COMP_WORDS[1]}
+        if _sqm_generic_option_args ; then return ; fi
+        case ${subcommand} in
+            list)
+                if _sqm_list_option_args ; then return ; fi
+                _sqm_list_options
+                ;;
+            modify)
+                if _sqm_modify_option_args ; then return ; fi
+                _sqm_modify_options
+                ;;
+        esac
+        _sqm_generic_options
+    fi
+}
+
+_sqm_generic_options(){
+    COMPREPLY+=($(compgen -W "-i --inode -h --help -u --user -g --group -d --directory -m --byte_mult" -- "${cur}"))
+}
+_sqm_list_options(){
+    COMPREPLY+=($(compgen -W "-f --format" -- "${cur}"))
+}
+_sqm_modify_options(){
+    COMPREPLY+=($(compgen -W "-l --limits" -- "${cur}"))
+}
+
+_sqm_generic_option_args(){
+    case $prev in
+        -i|--inode) return ;;
+        -u|--user) COMPREPLY=($(compgen -u -- "${cur}")) ;;
+        -g|--groups) COMPREPLY=($(compgen -g -- "${cur}")) ;;
+        -d|--directory) _filedir -d ;;
+        -m|--byte_mult) COMPREPLY=($(compgen -W "K M G T" -- "${cur}")) ;;
+        *) return 1 ;;
+    esac
+}
+
+_sqm_modify_option_args(){
+    # --limits takes two args so we have to check two arguments back
+    for i in {1..2}; do
+        case "${COMP_WORDS[COMP_CWORD-i]}" in
+            -l|--limits) return ;;
+        esac
+    done
+    return 1
+}
+
+_sqm_list_option_args(){
+    case $prev in
+        --format) COMPREPLY=($(compgen -W "json csv" -- "${cur}")) ;;
+        *) return 1 ;;
+    esac
+}
+
+complete -F _sqm sqm
