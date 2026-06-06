@@ -21,6 +21,8 @@ _glcurl(){
 }
 
 _glcurl_complete_request(){
+    local restore_extglob=$(shopt -p extglob)
+    shopt -s extglob
     compopt -o filenames
     compopt -o nospace
     local request_base=${cur%/*}/
@@ -31,9 +33,9 @@ _glcurl_complete_request(){
     _glcurl_log "request_base=${request_base}"
     case "${request_base}" in
         /)                      candidates="projects users groups" ;;
-        /projects/*/pipelines/) candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of pipelines
-        /projects/*/jobs/)      candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of jobs
-        /projects/*/)           candidates="pipelines jobs access_requests" ;;
+        /projects/*([^/])/pipelines/) candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of pipelines
+        /projects/*([^/])/jobs/)      candidates="$(glcurl ${request_base} 2>/dev/null | jq '.[] | .id' 2>/dev/null)" ;; # One page of jobs
+        /projects/*([^/])/)           candidates="pipelines jobs access_requests" ;;
         /projects/)
             if [[ "${request_tail}" == *%2F* ]] ; then
                 _glcurl_log "Yes %2F"
@@ -41,12 +43,13 @@ _glcurl_complete_request(){
             else
                 _glcurl_log "No  %2F"
                 candidates="${_glcurl_users_and_groups[*]}"
+                suffix="%2F"
                 # candidates="$(<~/A_CLASSER/gitlab_groups.txt) $(<~/A_CLASSER/gitlab_users.txt)" ; suffix="%2F"
             fi
             ;;
         /users/)                candidates="$(<~/A_CLASSER/gitlab_users.txt)" ;;
-        /users/*/projects/)     candidates=""; end=true;;
-        /users/*/|/groups/*/)   candidates="projects" ; end=true ;;
+        /users/*([^/])/projects/)     candidates=""; end=true;;
+        /users/*([^/])/|/groups/*/)   candidates="projects" ; end=true ;;
         /groups/)               candidates="$(<~/A_CLASSER/gitlab_groups.txt)" ;;
         *) _glcurl_log "Unknown request base '${request_base}'" ;;
     esac
@@ -60,6 +63,7 @@ _glcurl_complete_request(){
         compopt +o filenames
         COMPREPLY=("${COMPREPLY[0]} ")
     fi
+    ${restore_extglob}
 }
 
 complete -F _glcurl glcurl
