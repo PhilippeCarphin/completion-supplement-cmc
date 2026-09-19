@@ -12,35 +12,28 @@
 
 ## Install
 
+Bash completion does lazy loading (see my [bash-completion-notes](https://github.com/PhilippeCarphin/manpage-supplement/blob/main/share/man/man7/bash-completion-notes.org): when we trigger completion for a command
+`my-cmd` that doesn't have a completion spec, bash completion looks for a
+file named `_my-cmd`, `my-cmd`, `_my-cmd.bash`, or `my-cmd.bash` in
+- `$d/bash-completion/completions` for all the `$d` in `XDG_DATA_DIRS`
+- `$HOME/.local/share/bash-completion/completions` (unless `XDG_DATA_HOME` is set
+  in which case it looks in `$XDG_DATA_HOME/bash-completion/completions`)
+- `${d%%/bin}/share/bash-completion/completions` for all `$d` in `PATH` that end
+  with `/bin` (this is only in bash-completion 2.12+).
+
+Knowing this, we can make the completion files in this repo available to the
+lazy loading system by doing one of the following:
+- Add `${this_repo}/share` to `XDG_DATA_DIRS`
+- Do `make PREFIX=${pfx} install` with
+  - `pfx=$HOME/.local`
+  - `pfx=<some-other-dir>` and add `${pfx}/share` to `XDG_DATA_DIRS`.
+
 ### Fool proof way
 
-In your profile, just source every file in `share/bash-completion/completions/*`
-with something like
+We can also just source all the files at shell startup by adding something
+like this in BASH's startup files:
 ```bash
 for f in <THIS-DIR>/share/bash-completion/completions/* ; do
     source $f
 done
 ```
-
-### Proper way
-
-The proper way takes advantage of bash-completion's lazy-loading mechanism
-where the first time completion is requested for a command, it will look in
-various places for a file named `_<the command name>`.
-
-For this to work we can
-
-- Add =${repo}/share= to `XDG_DATA_DIRS` environment variable
-
-or
-
-- Run `PREFIX=$HOME/.local make install` to copy the files in
-  `$HOME/.local/share/bash-completion/completions`.
-
-or
-
-- Run `PREFIX=<X> make install` with `<X>/share` being part of `XDG_DATA_DIRS`.
-
-See
-[bash-completion-notes](https://github.com/PhilippeCarphin/manpage-supplement/blob/main/share/man/man7/bash-completion-notes.org)
-
